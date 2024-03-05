@@ -1,32 +1,60 @@
-import { Schema, Prop, SchemaFactory, raw } from '@nestjs/mongoose';
+import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 
 export type UserDocument = HydratedDocument<User>;
 
+@Schema()
+class Tag {
+
+    @Prop({ required: true, unique: true }) name: string;
+}
+
+const TagSchema = SchemaFactory.createForClass(Tag);
+
+@Schema({ timestamps: true })
+class Task {
+
+    @Prop({ required: true })
+    title: string;
+
+    @Prop()
+    description: string;
+
+    @Prop()
+    dueDate: Date;
+
+    @Prop({ type: String, enum: ['Done', 'Failed', 'Pending'], default: 'Pending' })
+    status: string;
+
+    @Prop({ type: [{ type: Types.ObjectId, ref: 'Tag' }]})
+    tags: Tag[]
+}
+
+const TaskSchema = SchemaFactory.createForClass(Task);
+
 @Schema({ timestamps: true })
 export class User {
 
-    @Prop({ required: true })
+    @Prop({ required: true, unique: true })
     userName: string;
 
     @Prop({ required: true })
     password: string;
 
-    @Prop(raw({
-        email: { type: String },
-        age: { type: Date },
-        phoneNumber: { type: Number }
-    }))
-    profile: Record<string, any>;
+    @Prop()
+    profile: {
+        email: string;
+        age: number;
+        phoneNumber: number;
+    }
 
-    @Prop(raw({
-        title: { type: String },
-        description: { type: String },
-        dueDate: { type: Date },
-        status: { type: String, enum: ['Done', 'Failed', 'Pending'], default: 'Pending'},
+    @Prop({ type: [{ type: [TaskSchema] }]})
+    tasks: Task[]
 
-    }))
-    tasks: Record<string, any>
+    @Prop({ type: [{ type: [TagSchema] }]})
+    tags: Tag[]
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+// we got only one schema here, 'USER' Schema and no more and all of the Tasks and Tags are embedded inside it!

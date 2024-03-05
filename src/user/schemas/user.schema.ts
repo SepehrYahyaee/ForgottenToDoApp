@@ -1,4 +1,4 @@
-import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
+import { Schema, Prop, SchemaFactory, raw } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 
 export type UserDocument = HydratedDocument<User>;
@@ -6,10 +6,9 @@ export type UserDocument = HydratedDocument<User>;
 @Schema()
 class Tag {
 
-    @Prop({ required: true, unique: true }) name: string;
+    @Prop({ required: true, unique: true })
+    name: string;
 }
-
-const TagSchema = SchemaFactory.createForClass(Tag);
 
 @Schema({ timestamps: true })
 class Task {
@@ -30,6 +29,7 @@ class Task {
     tags: Tag[]
 }
 
+const TagSchema = SchemaFactory.createForClass(Tag);
 const TaskSchema = SchemaFactory.createForClass(Task);
 
 @Schema({ timestamps: true })
@@ -41,12 +41,12 @@ export class User {
     @Prop({ required: true })
     password: string;
 
-    @Prop()
-    profile: {
-        email: string;
-        age: number;
-        phoneNumber: number;
-    }
+    @Prop(raw({
+        email: { type: String },
+        age: { type: Number },
+        phoneNumber: { type: Number },
+    }))
+    profile: Record<string, any>
 
     @Prop({ type: [{ type: [TaskSchema] }]})
     tasks: Task[]
